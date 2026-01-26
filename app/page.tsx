@@ -28,12 +28,14 @@ export default function Home() {
 
           {/* Navigation */}
           <nav className="absolute top-12 right-6 lg:right-20">
-            <Link 
+            <a 
               href="/blog" 
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-white hover:text-[#FFD600] transition-colors text-lg font-medium"
             >
               Blog →
-            </Link>
+            </a>
           </nav>
 
           {/* Hero Content */}
@@ -199,12 +201,14 @@ export default function Home() {
           <p className="text-black text-xl mb-8 max-w-2xl mx-auto">
             Dicas, tutoriais e conteúdo exclusivo sobre reformas de apartamentos
           </p>
-          <Link 
+          <a 
             href="/blog"
+            target="_blank"
+            rel="noopener noreferrer"
             className="inline-block bg-black text-[#FFD600] font-semibold text-lg px-12 py-4 hover:bg-gray-900 transition-colors"
           >
             Acessar o Blog
-          </Link>
+          </a>
         </div>
       </section>
 
