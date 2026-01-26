@@ -26,18 +26,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Navigation */}
-          <nav className="absolute top-12 right-6 lg:right-20">
-            <a 
-              href="/blog" 
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-white hover:text-[#FFD600] transition-colors text-lg font-medium"
-            >
-              Blog →
-            </a>
-          </nav>
-
           {/* Hero Content */}
           <div className="max-w-xl lg:max-w-2xl pb-20">
             <h2 className="text-white text-3xl lg:text-[42px] font-normal leading-tight mb-8">
@@ -192,32 +180,22 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Blog CTA Section */}
-      <section className="bg-[#FFD600] py-16">
-        <div className="container mx-auto px-6 lg:px-20 text-center">
-          <h2 className="text-black text-3xl lg:text-5xl font-bold mb-6">
-            Confira nosso Blog
-          </h2>
-          <p className="text-black text-xl mb-8 max-w-2xl mx-auto">
-            Dicas, tutoriais e conteúdo exclusivo sobre reformas de apartamentos
-          </p>
-          <a 
-            href="/blog"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-block bg-black text-[#FFD600] font-semibold text-lg px-12 py-4 hover:bg-gray-900 transition-colors"
-          >
-            Acessar o Blog
-          </a>
-        </div>
-      </section>
-
       {/* Footer */}
       <footer className="bg-black py-8 border-t border-gray-800">
-        <div className="container mx-auto px-6 lg:px-20 text-center">
-          <p className="text-gray-400">
-            © 2026 Reforma PRO. Todos os direitos reservados.
-          </p>
+        <div className="container mx-auto px-6 lg:px-20">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <p className="text-gray-400 text-sm">
+              © 2026 Reforma PRO. Todos os direitos reservados.
+            </p>
+            <a 
+              href="/blog"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-gray-500 text-sm hover:text-gray-400 transition-colors"
+            >
+              Blog
+            </a>
+          </div>
         </div>
       </footer>
     </div>
