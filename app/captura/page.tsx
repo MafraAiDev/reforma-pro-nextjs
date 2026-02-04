@@ -6,7 +6,6 @@ import Link from 'next/link'
 export default function CapturaPage() {
   const [form, setForm] = useState({
     nome: '',
-    sobrenome: '',
     whatsapp: '',
     email: '',
   })
@@ -19,8 +18,18 @@ export default function CapturaPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setStatus('loading')
+    setStatus('idle')
     setErrorMsg('')
+
+    // Validar nome e sobrenome
+    const parts = form.nome.trim().split(/\s+/)
+    if (parts.length < 2) {
+      setErrorMsg('Por favor, informe seu nome e sobrenome.')
+      setStatus('error')
+      return
+    }
+
+    setStatus('loading')
 
     try {
       const res = await fetch('/api/captura', {
@@ -35,7 +44,7 @@ export default function CapturaPage() {
       }
 
       setStatus('success')
-      setForm({ nome: '', sobrenome: '', whatsapp: '', email: '' })
+      setForm({ nome: '', whatsapp: '', email: '' })
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : 'Erro ao enviar')
       setStatus('error')
@@ -88,38 +97,21 @@ export default function CapturaPage() {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Nome + Sobrenome */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="nome" className="block text-gray-400 text-sm mb-1.5">
-                    Nome
-                  </label>
-                  <input
-                    id="nome"
-                    name="nome"
-                    type="text"
-                    required
-                    value={form.nome}
-                    onChange={handleChange}
-                    placeholder="Seu nome"
-                    className="w-full bg-white/5 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder:text-gray-600 focus:outline-none focus:border-[#FFD600] focus:ring-1 focus:ring-[#FFD600] transition-colors"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="sobrenome" className="block text-gray-400 text-sm mb-1.5">
-                    Sobrenome
-                  </label>
-                  <input
-                    id="sobrenome"
-                    name="sobrenome"
-                    type="text"
-                    required
-                    value={form.sobrenome}
-                    onChange={handleChange}
-                    placeholder="Seu sobrenome"
-                    className="w-full bg-white/5 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder:text-gray-600 focus:outline-none focus:border-[#FFD600] focus:ring-1 focus:ring-[#FFD600] transition-colors"
-                  />
-                </div>
+              {/* Nome e Sobrenome */}
+              <div>
+                <label htmlFor="nome" className="block text-gray-400 text-sm mb-1.5">
+                  Nome e Sobrenome
+                </label>
+                <input
+                  id="nome"
+                  name="nome"
+                  type="text"
+                  required
+                  value={form.nome}
+                  onChange={handleChange}
+                  placeholder="Seu nome completo"
+                  className="w-full bg-white/5 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder:text-gray-600 focus:outline-none focus:border-[#FFD600] focus:ring-1 focus:ring-[#FFD600] transition-colors"
+                />
               </div>
 
               {/* WhatsApp */}

@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/client'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { nome, sobrenome, whatsapp, email } = body
+    const { nome, whatsapp, email } = body
 
     if (!nome || !email) {
       return NextResponse.json(
@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
     try {
       const supabase = createClient()
       const { error } = await supabase.from('leads_captura').insert({
-        nome: `${nome} ${sobrenome}`.trim(),
+        nome: nome.trim(),
         email,
         whatsapp: whatsapp || null,
         status: 'completo',
