@@ -1,7 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import Link from 'next/link'
+
+function generateSessionId() {
+  return 'rp_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8)
+}
 
 export default function CapturaPage() {
   const [form, setForm] = useState({
@@ -11,6 +15,74 @@ export default function CapturaPage() {
   })
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [errorMsg, setErrorMsg] = useState('')
+
+  const sessionIdRef = useRef(generateSessionId())
+  const formRef = useRef(form)
+  const savedDataRef = useRef('')
+  const submittedRef = useRef(false)
+
+  // Manter formRef sincronizado com state
+  useEffect(() => {
+    formRef.current = form
+  }, [form])
+
+  const savePartial = useCallback((formData: typeof form, leadStatus: string) => {
+    const hasData = formData.nome || formData.email || formData.whatsapp
+    if (!hasData || submittedRef.current) return
+
+    const payload = {
+      ...formData,
+      session_id: sessionIdRef.current,
+      status: leadStatus,
+    }
+
+    // sendBeacon para abandonado (página fechando) - mais confiável
+    if (leadStatus === 'abandonado') {
+      const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' })
+      navigator.sendBeacon('/api/captura', blob)
+      return
+    }
+
+    // Não salvar se dados não mudaram
+    const dataKey = JSON.stringify(formData)
+    if (dataKey === savedDataRef.current) return
+    savedDataRef.current = dataKey
+
+    fetch('/api/captura', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      keepalive: true,
+    }).catch(() => {})
+  }, [])
+
+  // Salvar como abandonado ao fechar/esconder página
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden' && !submittedRef.current) {
+        savePartial(formRef.current, 'abandonado')
+      }
+    }
+
+    const handleBeforeUnload = () => {
+      if (!submittedRef.current) {
+        savePartial(formRef.current, 'abandonado')
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('beforeunload', handleBeforeUnload)
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+    }
+  }, [savePartial])
+
+  // Salvar parcial no blur de cada campo
+  function handleBlur() {
+    savePartial(form, 'parcial')
+  }
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }))
@@ -35,7 +107,11 @@ export default function CapturaPage() {
       const res = await fetch('/api/captura', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          ...form,
+          session_id: sessionIdRef.current,
+          status: 'completo',
+        }),
       })
 
       if (!res.ok) {
@@ -43,6 +119,7 @@ export default function CapturaPage() {
         throw new Error(json.error || 'Erro ao enviar')
       }
 
+      submittedRef.current = true
       setStatus('success')
       setForm({ nome: '', whatsapp: '', email: '' })
     } catch (err) {
@@ -109,6 +186,7 @@ export default function CapturaPage() {
                   required
                   value={form.nome}
                   onChange={handleChange}
+                  onBlur={handleBlur}
                   placeholder="Seu nome completo"
                   className="w-full bg-white/5 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder:text-gray-600 focus:outline-none focus:border-[#FFD600] focus:ring-1 focus:ring-[#FFD600] transition-colors"
                 />
@@ -126,6 +204,7 @@ export default function CapturaPage() {
                   required
                   value={form.whatsapp}
                   onChange={handleChange}
+                  onBlur={handleBlur}
                   placeholder="(11) 99999-9999"
                   className="w-full bg-white/5 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder:text-gray-600 focus:outline-none focus:border-[#FFD600] focus:ring-1 focus:ring-[#FFD600] transition-colors"
                 />
@@ -143,6 +222,7 @@ export default function CapturaPage() {
                   required
                   value={form.email}
                   onChange={handleChange}
+                  onBlur={handleBlur}
                   placeholder="seu@email.com"
                   className="w-full bg-white/5 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder:text-gray-600 focus:outline-none focus:border-[#FFD600] focus:ring-1 focus:ring-[#FFD600] transition-colors"
                 />
