@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/client'
+import { Pool } from 'pg'
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
+})
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,26 +18,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    try {
-      const supabase = createClient()
-      const { error } = await supabase.from('leads_captura').insert({
-        nome: nome.trim(),
-        email,
-        whatsapp: whatsapp || null,
-        status: 'completo',
-        origem: 'reforma-pro',
-      })
+    const sessionId = 'rp_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8)
 
-      if (error) {
-        console.error('[Captura] Supabase error:', error.message)
-      }
-    } catch (err) {
-      // Supabase not configured — log but don't fail
-      console.warn('[Captura] Supabase not available, lead not saved:', err)
-    }
+    const result = await pool.query(
+      `INSERT INTO leads_captura (nome, email, whatsapp, session_id, status, source, updated_at)
+       VALUES ($1, $2, $3, $4, 'completo', 'reforma-pro', NOW())
+       RETURNING *`,
+      [nome.trim(), email, whatsapp || '', sessionId]
+    )
 
-    return NextResponse.json({ success: true })
-  } catch {
+    return NextResponse.json({ success: true, data: result.rows[0] })
+  } catch (error: any) {
+    console.error('[Captura] Error:', error.message)
     return NextResponse.json(
       { error: 'Erro interno do servidor' },
       { status: 500 },
